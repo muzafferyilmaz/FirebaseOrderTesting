@@ -24,6 +24,13 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:onClick="addSecond"
+            android:text="Add 4,5,6"
+            android:textAllCaps="false"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:onClick="resetAll"
             android:text="Reset all"
             android:textAllCaps="false"/>

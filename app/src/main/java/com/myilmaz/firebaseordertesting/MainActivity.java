@@ -1,5 +1,8 @@
 package com.myilmaz.firebaseordertesting;
 
+import android.annotation.TargetApi;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,8 +17,15 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -119,6 +129,52 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onComplete(FirebaseError firebaseError, Firebase firebase) {
                 Toast.makeText(MainActivity.this, "added 1,2,3", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    public void addSecond(View view) {
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+
+                HttpsURLConnection conn = null;
+                try {
+                    URL url = new URL(FIREBASE_URL + ".json");
+                    conn = (HttpsURLConnection) url.openConnection();
+                    conn.setReadTimeout(10000);
+                    conn.setConnectTimeout(15000);
+                    conn.setRequestMethod("POST");
+                    conn.setDoInput(true);
+                    conn.setDoOutput(true);
+                    conn.setRequestProperty("X-HTTP-Method-Override", "PATCH");
+
+                    try (DataOutputStream wr = new DataOutputStream(conn.getOutputStream())) {
+                        wr.writeBytes("{\"d\":4,\"e\":5,\"f\":6}");
+                    }
+
+                    StringBuilder response = new StringBuilder();
+                    try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                        String inputLine;
+                        while ((inputLine = in.readLine()) != null) {
+                            response.append(inputLine);
+                        }
+                    }
+                    Log.i(TAG, "Patch response: " + response.toString());
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "added 4,5,6", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (conn != null) {
+                        conn.disconnect();
+                    }
+                }
             }
         });
     }
